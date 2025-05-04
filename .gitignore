@@ -6,6 +6,7 @@ ENV/
 .venv/
 
 # Model files
+models/
 *.h5
 *.onnx
 *.pb

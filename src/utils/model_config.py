@@ -54,34 +54,46 @@ EMOTION_MAPPINGS = {
 MODEL_CONFIG = {
     'version': CONFIG_VERSION,
     'model': {
-        'input_shape': (72,),  # Updated for our feature vector size
-        'conv_filters': [64, 128, 256],  # Increased filter sizes
+        'input_shape': (72,),
+        'conv_filters': [128, 256, 512],  # Increased filter sizes
         'conv_kernel_size': 3,
-        'lstm_units': [128, 64],  # Two LSTM layers
-        'dense_units': [256, 128, 64],  # Three dense layers
-        'dropout_rate': 0.4,  # Increased dropout
-        'l2_reg': 1e-4,  # L2 regularization
-        'batch_norm': True
+        'lstm_units': [256, 128],  # Increased LSTM units
+        'dense_units': [512, 256, 128],  # Increased dense units
+        'dropout_rate': 0.5,  # Increased dropout
+        'l2_reg': 5e-5,  # Reduced L2 regularization
+        'batch_norm': True,
+        'attention_heads': 4,  # Multi-head attention
+        'residual_connections': True,  # Enable residual connections
+        'se_ratio': 16  # Squeeze-and-Excitation ratio
     },
     'training': {
-        'batch_size': 64,  # Increased batch size
-        'epochs': 150,  # Increased epochs
-        'early_stopping_patience': 15,
-        'learning_rate': 0.001,
-        'reduce_lr_factor': 0.5,
-        'reduce_lr_patience': 5,
-        'reduce_lr_min_lr': 1e-6,
-        'warmup_epochs': 5,
+        'batch_size': 32,  # Reduced batch size for better generalization
+        'epochs': 200,  # Increased epochs
+        'early_stopping_patience': 20,  # Increased patience
+        'learning_rate': 0.0005,  # Reduced learning rate
+        'reduce_lr_factor': 0.2,  # More aggressive LR reduction
+        'reduce_lr_patience': 8,  # Increased patience
+        'reduce_lr_min_lr': 1e-7,  # Lower minimum LR
+        'warmup_epochs': 10,  # Increased warmup
         'class_weights': True,
         'focal_loss': {
-            'gamma': 2.0,
-            'alpha': 0.25
-        }
+            'gamma': 2.5,  # Increased gamma
+            'alpha': 0.3  # Adjusted alpha
+        },
+        'mixup_alpha': 0.2,  # Added mixup augmentation
+        'label_smoothing': 0.1,  # Added label smoothing
+        'gradient_clip_norm': 1.0  # Added gradient clipping
     },
     'feature_extraction': {
         'normalize_features': True,
-        'feature_selection': False,  # Disabled as we have good features
-        'n_features': 72  # Match our feature vector size
+        'feature_selection': True,  # Enable feature selection
+        'n_features': 72,
+        'augmentation': {
+            'time_warp': True,
+            'pitch_shift': True,
+            'noise': True,
+            'spec_augment': True
+        }
     }
 }
 

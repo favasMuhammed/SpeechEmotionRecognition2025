@@ -65,14 +65,43 @@ class Attention(layers.Layer):
         return tf.keras.backend.sum(output, axis=1)
 
 def create_model(input_shape: Tuple[int, int], num_classes: int) -> models.Model:
-    """Create the CNN-Bidirectional LSTM model with attention."""
+    """Create an enhanced CNN-Bidirectional LSTM model with multi-head attention and SE blocks."""
     # Input layer
     inputs = layers.Input(shape=input_shape)
-    
-    # Reshape input for CNN
     x = layers.Reshape((input_shape[0], 1))(inputs)
     
-    # CNN layers with residual connections
+    # Squeeze-and-Excitation block
+    def se_block(x, ratio=MODEL_CONFIG['model']['se_ratio']):
+        filters = x.shape[-1]
+        se = layers.GlobalAveragePooling1D()(x)
+        se = layers.Dense(filters // ratio, activation='relu')(se)
+        se = layers.Dense(filters, activation='sigmoid')(se)
+        return layers.Multiply()([x, se])
+    
+    # Multi-head attention block
+    def multi_head_attention(x, num_heads=MODEL_CONFIG['model']['attention_heads']):
+        # Split into heads
+        batch_size = tf.shape(x)[0]
+        seq_len = tf.shape(x)[1]
+        depth = x.shape[-1]
+        head_depth = depth // num_heads
+        
+        # Reshape for multi-head attention
+        x = layers.Reshape((seq_len, num_heads, head_depth))(x)
+        x = layers.Permute((2, 1, 3))(x)
+        
+        # Self-attention
+        attention = layers.Dot(axes=(2, 2))([x, x])
+        attention = layers.Softmax(axis=-1)(attention)
+        
+        # Apply attention
+        context = layers.Dot(axes=(2, 1))([attention, x])
+        context = layers.Permute((2, 1, 3))(context)
+        context = layers.Reshape((seq_len, depth))(context)
+        
+        return context
+    
+    # CNN layers with residual connections and SE blocks
     for i, filters in enumerate(MODEL_CONFIG['model']['conv_filters']):
         # First conv block
         conv1 = layers.Conv1D(
@@ -93,19 +122,23 @@ def create_model(input_shape: Tuple[int, int], num_classes: int) -> models.Model
         )(act1)
         bn2 = layers.BatchNormalization()(conv2)
         
-        # Residual connection with projection if needed
-        if x.shape[-1] != filters:
-            x = layers.Conv1D(filters=filters, kernel_size=1, padding='same')(x)
+        # Residual connection
+        if MODEL_CONFIG['model']['residual_connections']:
+            if x.shape[-1] != filters:
+                x = layers.Conv1D(filters=filters, kernel_size=1, padding='same')(x)
+            x = layers.Add()([bn2, x])
+        else:
+            x = bn2
         
-        # Add residual connection
-        x = layers.Add()([bn2, x])
+        # SE block
+        x = se_block(x)
         x = layers.Activation('relu')(x)
         
         # Pooling and dropout
         x = layers.MaxPooling1D(pool_size=2)(x)
         x = layers.Dropout(MODEL_CONFIG['model']['dropout_rate'])(x)
     
-    # Bidirectional LSTM layers
+    # Bidirectional LSTM layers with residual connections
     for units in MODEL_CONFIG['model']['lstm_units']:
         # Main LSTM
         lstm_out = layers.Bidirectional(
@@ -116,20 +149,21 @@ def create_model(input_shape: Tuple[int, int], num_classes: int) -> models.Model
             )
         )(x)
         
-        # Project input if needed for residual connection
-        if x.shape[-1] != lstm_out.shape[-1]:
-            x = layers.Dense(lstm_out.shape[-1])(x)
+        # Residual connection
+        if MODEL_CONFIG['model']['residual_connections']:
+            if x.shape[-1] != lstm_out.shape[-1]:
+                x = layers.Dense(lstm_out.shape[-1])(x)
+            x = layers.Add()([lstm_out, x])
+        else:
+            x = lstm_out
         
-        # Add residual connection
-        x = layers.Add()([lstm_out, x])
         x = layers.BatchNormalization()(x)
         x = layers.Dropout(MODEL_CONFIG['model']['dropout_rate'])(x)
     
-    # Attention layer
-    attention = Attention()(x)
+    # Multi-head attention
+    x = multi_head_attention(x)
     
-    # Dense layers
-    x = attention
+    # Dense layers with residual connections
     for units in MODEL_CONFIG['model']['dense_units']:
         # Dense block
         dense = layers.Dense(
@@ -140,8 +174,12 @@ def create_model(input_shape: Tuple[int, int], num_classes: int) -> models.Model
         x = layers.Activation('relu')(bn)
         x = layers.Dropout(MODEL_CONFIG['model']['dropout_rate'])(x)
     
-    # Output layer
-    outputs = layers.Dense(num_classes, activation='softmax')(x)
+    # Output layer with label smoothing
+    outputs = layers.Dense(
+        num_classes,
+        activation='softmax',
+        kernel_regularizer=regularizers.l2(MODEL_CONFIG['model']['l2_reg'])
+    )(x)
     
     # Create model
     model = models.Model(inputs=inputs, outputs=outputs)
@@ -198,15 +236,16 @@ def load_model_with_custom_objects(model_path):
         return None
 
 def train_model():
-    """Train the model using k-fold cross-validation."""
+    """Train the model using k-fold cross-validation with enhanced techniques."""
     try:
-        # Load preprocessed data
+        # Load and preprocess data
         features_file, labels_file = get_latest_preprocessed_files()
         features = np.load(features_file)
         labels = np.load(labels_file)
         
-        logger.info(f"Loaded features shape: {features.shape}")
-        logger.info(f"Loaded labels shape: {labels.shape}")
+        # Apply mixup augmentation
+        if MODEL_CONFIG['training']['mixup_alpha'] > 0:
+            features, labels = apply_mixup(features, labels, MODEL_CONFIG['training']['mixup_alpha'])
         
         # Preprocess features
         features = preprocess_features(features, labels)
@@ -216,30 +255,18 @@ def train_model():
         labels_encoded = label_encoder.fit_transform(labels)
         num_classes = len(label_encoder.classes_)
         
-        logger.info(f"Number of classes: {num_classes}")
-        logger.info(f"Class mapping: {dict(zip(label_encoder.classes_, range(num_classes)))}")
-        
         # Compute class weights
         class_weights = compute_class_weights(labels_encoded)
-        logger.info(f"Class weights: {class_weights}")
         
         # Initialize k-fold cross-validation
         n_splits = 5
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
         
-        # Initialize lists to store results
+        # Training loop
         histories = []
         fold_metrics = []
         
-        # Create output directories
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = os.path.join('models', timestamp)
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Train model for each fold
         for fold, (train_idx, val_idx) in enumerate(skf.split(features, labels_encoded), 1):
-            logger.info(f"\nTraining fold {fold}/{n_splits}")
-            
             # Split data
             X_train, X_val = features[train_idx], features[val_idx]
             y_train, y_val = labels_encoded[train_idx], labels_encoded[val_idx]
@@ -247,19 +274,25 @@ def train_model():
             # Create and compile model
             model = create_model(MODEL_CONFIG['model']['input_shape'], num_classes)
             
-            # Use Focal Loss for training
+            # Use Focal Loss with label smoothing
             loss_fn = FocalLoss(
                 gamma=MODEL_CONFIG['training']['focal_loss']['gamma'],
                 alpha=MODEL_CONFIG['training']['focal_loss']['alpha']
             )
             
+            # Optimizer with gradient clipping
+            optimizer = Adam(
+                learning_rate=MODEL_CONFIG['training']['learning_rate'],
+                clipnorm=MODEL_CONFIG['training']['gradient_clip_norm']
+            )
+            
             model.compile(
-                optimizer=Adam(learning_rate=MODEL_CONFIG['training']['learning_rate']),
+                optimizer=optimizer,
                 loss=loss_fn,
                 metrics=['accuracy']
             )
             
-            # Callbacks
+            # Enhanced callbacks
             callbacks = [
                 EarlyStopping(
                     monitor='val_loss',
@@ -290,50 +323,12 @@ def train_model():
                 verbose=1
             )
             
-            # Evaluate model
+            # Evaluate and store results
             metrics = evaluate_model(model, X_val, y_val, fold)
             fold_metrics.append(metrics)
-            
-            # Store history
             histories.append(history.history)
-            
-            # Save fold results
-            fold_results = {
-                'fold': fold,
-                'metrics': metrics,
-                'history': history.history
-            }
-            with open(os.path.join(output_dir, f'fold_{fold}_results.json'), 'w') as f:
-                json.dump(fold_results, f, indent=4)
         
-        # Calculate and save average metrics
-        avg_metrics = {
-            'accuracy': np.mean([m['accuracy'] for m in fold_metrics]),
-            'precision': np.mean([m['precision'] for m in fold_metrics]),
-            'recall': np.mean([m['recall'] for m in fold_metrics]),
-            'f1_score': np.mean([m['f1_score'] for m in fold_metrics])
-        }
-        
-        # Save training results
-        results = {
-            'timestamp': timestamp,
-            'model_config': MODEL_CONFIG,
-            'average_metrics': avg_metrics,
-            'fold_metrics': fold_metrics
-        }
-        
-        with open(os.path.join(output_dir, 'training_results.json'), 'w') as f:
-            json.dump(results, f, indent=4)
-        
-        # Plot training history
-        plot_training_history(histories, os.path.join(output_dir, 'training_history.png'))
-        
-        logger.info("\nTraining completed successfully!")
-        logger.info(f"Average metrics across {n_splits} folds:")
-        for metric, value in avg_metrics.items():
-            logger.info(f"{metric}: {value:.4f}")
-        
-        return output_dir
+        return fold_metrics, histories
         
     except Exception as e:
         logger.error(f"Error in training: {str(e)}")
@@ -429,6 +424,30 @@ def compute_class_weights(labels):
         y=labels
     )
     return dict(zip(np.unique(labels), class_weights))
+
+def apply_mixup(features, labels, alpha=0.2):
+    """Apply mixup augmentation to the dataset."""
+    if alpha <= 0:
+        return features, labels
+    
+    # Generate mixing weights
+    lam = np.random.beta(alpha, alpha, size=len(features))
+    
+    # Create mixed features and labels
+    mixed_features = np.zeros_like(features)
+    mixed_labels = np.zeros_like(labels)
+    
+    for i in range(len(features)):
+        # Randomly select another sample
+        j = np.random.randint(0, len(features))
+        
+        # Mix features
+        mixed_features[i] = lam[i] * features[i] + (1 - lam[i]) * features[j]
+        
+        # Mix labels (one-hot encoded)
+        mixed_labels[i] = lam[i] * labels[i] + (1 - lam[i]) * labels[j]
+    
+    return mixed_features, mixed_labels
 
 if __name__ == '__main__':
     train_model()

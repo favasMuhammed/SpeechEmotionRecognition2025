@@ -598,7 +598,7 @@ def analyze_emotion_characteristics(features):
             analysis['energy_level'] = 'medium'
         
         # Analyze temporal characteristics
-        if features['zero_crossing_rate_mean'] > 0.1:
+         if features['zero_crossing_rate_mean'] > 0.1:
             analysis['speech_rate'] = 'fast'
         elif features['zero_crossing_rate_mean'] < 0.05:
             analysis['speech_rate'] = 'slow'

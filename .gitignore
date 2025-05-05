@@ -10,7 +10,6 @@ ENV/
 # Data directories
 data/EMODB/
 data/RAVDESS/
-*.npy
 
 # Python cache
 __pycache__/

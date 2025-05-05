@@ -5,14 +5,7 @@ ENV/
 .env/
 .venv/
 
-# Model files
-models/
-*.h5
-*.onnx
-*.pb
-*.ckpt
-*.index
-*.meta
+
 
 # Data directories
 data/
@@ -46,8 +39,6 @@ wheels/
 *.egg
 
 # Logs
-logs/
-*.log
 
 # IDE specific files
 .idea/

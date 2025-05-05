@@ -100,17 +100,19 @@ class TestAudioUtils(unittest.TestCase):
     def test_load_audio_file(self):
         """Test audio file loading."""
         # Test normal audio loading
-        audio = load_audio_file(self.test_audio_path, sample_rate=self.sample_rate)
+        audio, sr = load_audio_file(self.test_audio_path, target_sr=self.sample_rate)
         self.assertEqual(len(audio), len(self.test_audio), "Loaded audio length mismatch.")
         self.assertTrue(np.all(np.isfinite(audio)), "Loaded audio contains invalid values.")
+        self.assertEqual(sr, self.sample_rate, "Sample rate mismatch.")
         
         # Test loading with different sample rate
-        audio = load_audio_file(self.test_audio_path, sample_rate=8000)
+        audio, sr = load_audio_file(self.test_audio_path, target_sr=8000)
         self.assertEqual(len(audio), int(8000 * self.duration), "Resampled audio length mismatch.")
+        self.assertEqual(sr, 8000, "Resampled sample rate mismatch.")
         
         # Test loading non-existent file
         with self.assertRaises(FileNotFoundError):
-            load_audio_file('nonexistent.wav', sample_rate=self.sample_rate)
+            load_audio_file('nonexistent.wav', target_sr=self.sample_rate)
     
     def test_preprocess_audio(self):
         """Test audio preprocessing."""

@@ -5,6 +5,7 @@ import logging
 import subprocess
 from datetime import datetime
 import numpy as np
+import time
 
 def setup_logging():
     """Set up logging configuration."""
@@ -103,15 +104,39 @@ def cleanup_test_environment():
         "tests/data",
         "tests/models"
     ]
+    
+    # Close all log handlers first
+    loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for logger in loggers:
+        for handler in logger.handlers[:]:
+            handler.close()
+            logger.removeHandler(handler)
+    
+    # Wait a moment for file handles to be released
+    time.sleep(1)
+    
+    # Now remove directories
     for directory in test_dirs:
         if os.path.exists(directory):
-            for root, dirs, files in os.walk(directory, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            os.rmdir(directory)
-            logging.info(f"Removed directory: {directory}")
+            try:
+                for root, dirs, files in os.walk(directory, topdown=False):
+                    for name in files:
+                        try:
+                            os.remove(os.path.join(root, name))
+                        except PermissionError:
+                            logging.warning(f"Could not remove file {name} - it may be in use")
+                    for name in dirs:
+                        try:
+                            os.rmdir(os.path.join(root, name))
+                        except PermissionError:
+                            logging.warning(f"Could not remove directory {name} - it may be in use")
+                try:
+                    os.rmdir(directory)
+                    logging.info(f"Removed directory: {directory}")
+                except PermissionError:
+                    logging.warning(f"Could not remove directory {directory} - it may be in use")
+            except Exception as e:
+                logging.error(f"Error cleaning up {directory}: {str(e)}")
 
 def main():
     """Main function to run all tests."""

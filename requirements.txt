@@ -10,5 +10,5 @@ streamlit
 tqdm
 onnx
 tf2onnx
-tensorflow-gpu
+tensorflow
 seaborn

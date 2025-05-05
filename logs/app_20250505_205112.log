@@ -1,0 +1,15 @@
+2025-05-05 20:51:23,842 - app - DEBUG - Extracted features shape: (72,)
+2025-05-05 20:51:23,842 - app - DEBUG - Feature statistics - Mean: 2.8366, Std: 27.3631
+2025-05-05 20:51:33,138 - app - DEBUG - Detailed prediction analysis:
+2025-05-05 20:51:33,139 - app - DEBUG - Individual model predictions:
+2025-05-05 20:51:33,139 - app - DEBUG - Model 1: happy (confidence: 0.604)
+2025-05-05 20:51:33,140 - app - DEBUG - Model 2: happy (confidence: 0.465)
+2025-05-05 20:51:33,141 - app - DEBUG - Model 3: neutral (confidence: 0.390)
+2025-05-05 20:51:33,141 - app - DEBUG - Model 4: disgust (confidence: 0.624)
+2025-05-05 20:51:33,141 - app - DEBUG - Model 5: fear (confidence: 0.440)
+2025-05-05 20:51:33,142 - app - DEBUG - Voting results: {'angry': 0, 'boredom': 0, 'calm': 0, 'disgust': 1, 'fear': 1, 'happy': 2, 'neutral': 1, 'sad': 0, 'surprise': 0}
+2025-05-05 20:51:33,143 - app - DEBUG - Vote confidence: 0.400
+2025-05-05 20:51:33,144 - app - DEBUG - Ensemble probabilities: [0.05403685 0.04077059 0.00140748 0.16301551 0.20867553 0.35923776
+ 0.12037742 0.02973815 0.02274073]
+2025-05-05 20:51:33,145 - app - DEBUG - Ensemble confidence: 0.359
+2025-05-05 20:51:33,145 - app - DEBUG - Final prediction: happy (confidence: 0.359)

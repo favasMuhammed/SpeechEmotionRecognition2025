@@ -1,0 +1,5 @@
+2025-05-05 20:31:44,356 - app - DEBUG - Extracted features shape: (72,)
+2025-05-05 20:31:44,356 - app - DEBUG - Feature statistics - Mean: 6.2894, Std: 20.0682
+2025-05-05 20:31:45,799 - app - DEBUG - Raw probabilities: [3.6424334e-04 5.6636107e-01 5.4957683e-04 1.0032706e-04 3.9271484e-03
+ 4.3519842e-03 4.2041501e-01 3.9062663e-03 2.4475590e-05]
+2025-05-05 20:31:45,801 - app - DEBUG - Predicted emotion: boredom

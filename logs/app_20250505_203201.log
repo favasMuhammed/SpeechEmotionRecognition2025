@@ -1,0 +1,5 @@
+2025-05-05 20:32:09,734 - app - DEBUG - Extracted features shape: (72,)
+2025-05-05 20:32:09,735 - app - DEBUG - Feature statistics - Mean: 3.1247, Std: 22.3582
+2025-05-05 20:32:11,239 - app - DEBUG - Raw probabilities: [0.00452594 0.00326302 0.00234429 0.0168363  0.5593781  0.22678311
+ 0.02988301 0.14793989 0.00904626]
+2025-05-05 20:32:11,240 - app - DEBUG - Predicted emotion: fear

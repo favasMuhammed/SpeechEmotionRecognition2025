@@ -1,0 +1,87 @@
+{
+    "timestamp": "20250505_170956",
+    "model_config": {
+        "version": "1.1.0",
+        "model": {
+            "input_shape": [
+                72
+            ],
+            "conv_filters": [
+                64,
+                128,
+                256
+            ],
+            "conv_kernel_size": 3,
+            "lstm_units": [
+                128,
+                64
+            ],
+            "dense_units": [
+                256,
+                128,
+                64
+            ],
+            "dropout_rate": 0.4,
+            "l2_reg": 0.0001,
+            "batch_norm": true
+        },
+        "training": {
+            "batch_size": 64,
+            "epochs": 150,
+            "early_stopping_patience": 15,
+            "learning_rate": 0.001,
+            "reduce_lr_factor": 0.5,
+            "reduce_lr_patience": 5,
+            "reduce_lr_min_lr": 1e-06,
+            "warmup_epochs": 5,
+            "class_weights": true,
+            "focal_loss": {
+                "gamma": 2.0,
+                "alpha": 0.25
+            }
+        },
+        "feature_extraction": {
+            "normalize_features": true,
+            "feature_selection": false,
+            "n_features": 72
+        }
+    },
+    "average_metrics": {
+        "accuracy": 0.8004734378137318,
+        "precision": 0.809010138552331,
+        "recall": 0.8004734378137318,
+        "f1_score": 0.7958253226963622
+    },
+    "fold_metrics": [
+        {
+            "accuracy": 0.8249336870026526,
+            "precision": 0.8301604053437998,
+            "recall": 0.8249336870026526,
+            "f1_score": 0.8208946043447831
+        },
+        {
+            "accuracy": 0.8156498673740054,
+            "precision": 0.8237442211438688,
+            "recall": 0.8156498673740054,
+            "f1_score": 0.811414889869893
+        },
+        {
+            "accuracy": 0.7572944297082228,
+            "precision": 0.7662656621783863,
+            "recall": 0.7572944297082228,
+            "f1_score": 0.7500314826804553
+        },
+        {
+            "accuracy": 0.8196286472148541,
+            "precision": 0.8287580150306786,
+            "recall": 0.8196286472148541,
+            "f1_score": 0.8175452023061375
+        },
+        {
+            "accuracy": 0.7848605577689243,
+            "precision": 0.7961223890649209,
+            "recall": 0.7848605577689243,
+            "f1_score": 0.7792404342805422
+        }
+    ]
+}

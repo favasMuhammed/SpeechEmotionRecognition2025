@@ -9,6 +9,8 @@ import os
 from src.utils.audio_utils import record_audio, preprocess_audio
 from src.utils.model_config import EMOTIONS
 from src.utils.logging_utils import setup_logger
+import shutil
+import time
 
 # Set up logger
 logger = setup_logger('test_app', 'test_app')
@@ -98,13 +100,36 @@ class TestApp(unittest.TestCase):
 
     def tearDown(self):
         """Clean up test environment."""
-        import shutil
-        if os.path.exists("models"):
-            shutil.rmtree("models")
-        if os.path.exists("data"):
-            shutil.rmtree("data")
-        if os.path.exists("logs"):
-            shutil.rmtree("logs")
+        # Close all log handlers
+        import logging
+        loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+        for logger in loggers:
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+        
+        # Wait a moment for file handles to be released
+        time.sleep(1)
+        
+        # Remove test-specific files and directories
+        test_files = [
+            "data/features_v20250504_120000.npy",
+            "data/labels_v20250504_120000.npy"
+        ]
+        for file_path in test_files:
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except PermissionError:
+                    logging.warning(f"Could not remove file {file_path} - it may be in use")
+        
+        # Remove test-specific directories
+        for directory in ["models", "logs"]:
+            if os.path.exists(directory):
+                try:
+                    shutil.rmtree(directory)
+                except PermissionError:
+                    logging.warning(f"Could not remove directory {directory} - it may be in use")
 
 if __name__ == '__main__':
     unittest.main() 

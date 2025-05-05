@@ -1,0 +1,19 @@
+2025-05-05 20:39:57,464 - app - DEBUG - Extracted features shape: (72,)
+2025-05-05 20:39:57,465 - app - DEBUG - Feature statistics - Mean: 3.9791, Std: 18.0527
+2025-05-05 20:40:10,263 - app - DEBUG - Raw probabilities from each model:
+2025-05-05 20:40:10,264 - app - DEBUG - Model 1: [1.4822969e-03 3.8469863e-01 4.5169530e-05 9.3152735e-04 6.2750927e-03
+ 2.8295552e-02 5.7728267e-01 9.3987526e-04 4.9161739e-05]
+2025-05-05 20:40:10,265 - app - DEBUG - Model 2: [0.00160851 0.1930258  0.00486979 0.00523127 0.00932756 0.03329766
+ 0.7427993  0.00643737 0.00340275]
+2025-05-05 20:40:10,265 - app - DEBUG - Model 3: [3.5748136e-04 5.6933999e-01 7.7605172e-04 1.2366967e-04 4.3254155e-03
+ 4.2075729e-03 4.1548195e-01 5.3570499e-03 3.0865038e-05]
+2025-05-05 20:40:10,267 - app - DEBUG - Model 4: [5.5256963e-04 4.9473280e-01 1.1647788e-03 1.2071114e-03 9.0096965e-03
+ 9.8304134e-03 4.7243696e-01 1.0850107e-02 2.1552357e-04]
+2025-05-05 20:40:10,269 - app - DEBUG - Model 5: [0.00150485 0.33947015 0.00463049 0.00202698 0.0406491  0.02128965
+ 0.54267055 0.04622634 0.00153186]
+2025-05-05 20:40:10,270 - app - DEBUG - Ensemble probabilities: [0.00110114 0.3962535  0.00229726 0.00190411 0.01391737 0.01938417
+ 0.5501343  0.01396215 0.00104603]
+2025-05-05 20:40:10,270 - app - DEBUG - Predicted emotion: neutral
+2025-05-05 20:40:10,271 - app - DEBUG - Agreement analysis: {'agreement_ratio': 0.6, 'avg_confidence': 0.58536506, 'std_confidence': 0.08383876, 'entropy': 0.42403483122201047, 'prediction_counts': array([0, 2, 0, 0, 0, 0, 3, 0, 0], dtype=int64), 'unique_predictions': array([1, 6], dtype=int64)}
+2025-05-05 20:40:10,919 - app - ERROR - Error plotting model agreement: name 'all_probabilities' is not defined
+2025-05-05 20:40:10,921 - app - ERROR - Error processing audio: name 'all_probabilities' is not defined

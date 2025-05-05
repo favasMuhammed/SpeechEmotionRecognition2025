@@ -1,0 +1,46 @@
+2025-05-05 17:09:56,436 - train_model - INFO - Loaded features shape: (3769, 72)
+2025-05-05 17:09:56,436 - train_model - INFO - Loaded labels shape: (3769,)
+2025-05-05 17:09:56,451 - train_model - INFO - Number of classes: 9
+2025-05-05 17:09:56,451 - train_model - INFO - Class mapping: {'angry': 0, 'boredom': 1, 'calm': 2, 'disgust': 3, 'fear': 4, 'happy': 5, 'neutral': 6, 'sad': 7, 'surprise': 8}
+2025-05-05 17:09:56,457 - train_model - INFO - Class weights: {0: 1.3127830024381748, 1: 1.2925240054869684, 2: 1.0905671296296295, 3: 0.887241054613936, 4: 0.8022562792677735, 5: 0.7961554710604141, 6: 1.1965079365079365, 7: 0.8581511839708561, 8: 1.0905671296296295}
+2025-05-05 17:09:56,463 - train_model - INFO - 
+Training fold 1/5
+2025-05-05 17:29:10,295 - train_model - INFO - 
+Fold 1 metrics:
+2025-05-05 17:29:10,296 - train_model - INFO - accuracy: 0.8249
+2025-05-05 17:29:10,296 - train_model - INFO - precision: 0.8302
+2025-05-05 17:29:10,297 - train_model - INFO - recall: 0.8249
+2025-05-05 17:29:10,298 - train_model - INFO - f1_score: 0.8209
+2025-05-05 17:29:10,302 - train_model - INFO - 
+Training fold 2/5
+2025-05-05 17:48:11,401 - train_model - INFO - 
+Fold 2 metrics:
+2025-05-05 17:48:11,403 - train_model - INFO - accuracy: 0.8156
+2025-05-05 17:48:11,403 - train_model - INFO - precision: 0.8237
+2025-05-05 17:48:11,405 - train_model - INFO - recall: 0.8156
+2025-05-05 17:48:11,405 - train_model - INFO - f1_score: 0.8114
+2025-05-05 17:48:11,409 - train_model - INFO - 
+Training fold 3/5
+2025-05-05 18:05:24,856 - train_model - INFO - 
+Fold 3 metrics:
+2025-05-05 18:05:24,857 - train_model - INFO - accuracy: 0.7573
+2025-05-05 18:05:24,858 - train_model - INFO - precision: 0.7663
+2025-05-05 18:05:24,858 - train_model - INFO - recall: 0.7573
+2025-05-05 18:05:24,859 - train_model - INFO - f1_score: 0.7500
+2025-05-05 18:05:24,863 - train_model - INFO - 
+Training fold 4/5
+2025-05-05 18:24:54,439 - train_model - INFO - 
+Fold 4 metrics:
+2025-05-05 18:24:54,440 - train_model - INFO - accuracy: 0.8196
+2025-05-05 18:24:54,440 - train_model - INFO - precision: 0.8288
+2025-05-05 18:24:54,441 - train_model - INFO - recall: 0.8196
+2025-05-05 18:24:54,442 - train_model - INFO - f1_score: 0.8175
+2025-05-05 18:24:54,446 - train_model - INFO - 
+Training fold 5/5
+2025-05-05 18:40:38,122 - train_model - INFO - 
+Fold 5 metrics:
+2025-05-05 18:40:38,123 - train_model - INFO - accuracy: 0.7849
+2025-05-05 18:40:38,123 - train_model - INFO - precision: 0.7961
+2025-05-05 18:40:38,124 - train_model - INFO - recall: 0.7849
+2025-05-05 18:40:38,125 - train_model - INFO - f1_score: 0.7792
+2025-05-05 18:40:38,130 - train_model - ERROR - Error in training: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (5,) + inhomogeneous part.

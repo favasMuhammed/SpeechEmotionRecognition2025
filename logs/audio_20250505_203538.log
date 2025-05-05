@@ -1,0 +1,18 @@
+2025-05-05 20:35:53,724 - audio_utils - INFO - Recording audio for 3.0 seconds...
+2025-05-05 20:35:57,274 - audio_utils - INFO - Recording completed
+2025-05-05 20:35:57,544 - audio_utils - DEBUG - Processing audio: length=48000, sample_rate=16000
+2025-05-05 20:35:57,544 - audio_utils - DEBUG - Using n_fft=2048, hop_length=512
+2025-05-05 20:35:57,545 - audio_utils - DEBUG - Using n_mels=32
+2025-05-05 20:35:57,569 - audio_utils - DEBUG - Truncating features from 104 to 72
+2025-05-05 20:36:18,447 - audio_utils - INFO - Recording audio for 3.0 seconds...
+2025-05-05 20:36:22,000 - audio_utils - INFO - Recording completed
+2025-05-05 20:36:22,246 - audio_utils - DEBUG - Processing audio: length=48000, sample_rate=16000
+2025-05-05 20:36:22,247 - audio_utils - DEBUG - Using n_fft=2048, hop_length=512
+2025-05-05 20:36:22,248 - audio_utils - DEBUG - Using n_mels=32
+2025-05-05 20:36:22,266 - audio_utils - DEBUG - Truncating features from 104 to 72
+2025-05-05 20:37:57,851 - audio_utils - INFO - Recording audio for 3.0 seconds...
+2025-05-05 20:38:01,392 - audio_utils - INFO - Recording completed
+2025-05-05 20:38:01,647 - audio_utils - DEBUG - Processing audio: length=48000, sample_rate=16000
+2025-05-05 20:38:01,647 - audio_utils - DEBUG - Using n_fft=2048, hop_length=512
+2025-05-05 20:38:01,648 - audio_utils - DEBUG - Using n_mels=32
+2025-05-05 20:38:01,665 - audio_utils - DEBUG - Truncating features from 104 to 72

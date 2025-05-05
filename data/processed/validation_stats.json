@@ -1,0 +1,32 @@
+{
+    "total_samples": 3769,
+    "feature_shape": [
+        3769,
+        72
+    ],
+    "emotion_distribution": {
+        "angry": 319,
+        "boredom": 324,
+        "calm": 384,
+        "disgust": 472,
+        "fear": 522,
+        "happy": 526,
+        "neutral": 350,
+        "sad": 488,
+        "surprise": 384
+    },
+    "timestamp": "20250505_135551",
+    "skipped_files": 12,
+    "dataset_stats": {
+        "RAVDESS": {
+            "total_files": 1440,
+            "processed_files": 1440,
+            "skipped_files": 0
+        },
+        "EMODB": {
+            "total_files": 535,
+            "processed_files": 523,
+            "skipped_files": 12
+        }
+    }
+}

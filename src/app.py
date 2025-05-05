@@ -14,6 +14,14 @@ from src.utils.model_config import (
     RAVDESS_EMOTION_MAP, AUDIO_CONFIG
 )
 from src.utils.logging_utils import setup_logger
+import librosa
+import soundfile as sf
+from scipy.signal import butter, filtfilt
+from scipy.stats import mode
+import pywt
+from sklearn.preprocessing import StandardScaler
+import warnings
+warnings.filterwarnings('ignore')
 
 # Set up logger
 logger = setup_logger('app', 'app')
@@ -506,103 +514,158 @@ def predict_emotion(model, features):
         logger.error(f"Error predicting emotion: {str(e)}")
         raise
 
+def extract_advanced_features(audio, sample_rate):
+    """
+    Extract advanced audio features using multiple techniques.
+    
+    Args:
+        audio (numpy.ndarray): Audio signal.
+        sample_rate (int): Sample rate of the audio.
+        
+    Returns:
+        dict: Dictionary of advanced features.
+    """
+    try:
+        features = {}
+        
+        # 1. Spectral Features
+        spectral_centroids = librosa.feature.spectral_centroid(y=audio, sr=sample_rate)[0]
+        spectral_rolloff = librosa.feature.spectral_rolloff(y=audio, sr=sample_rate)[0]
+        spectral_contrast = librosa.feature.spectral_contrast(y=audio, sr=sample_rate)[0]
+        
+        features['spectral_centroid_mean'] = np.mean(spectral_centroids)
+        features['spectral_rolloff_mean'] = np.mean(spectral_rolloff)
+        features['spectral_contrast_mean'] = np.mean(spectral_contrast)
+        
+        # 2. Temporal Features
+        zero_crossing_rate = librosa.feature.zero_crossing_rate(audio)[0]
+        rms = librosa.feature.rms(y=audio)[0]
+        
+        features['zero_crossing_rate_mean'] = np.mean(zero_crossing_rate)
+        features['rms_mean'] = np.mean(rms)
+        
+        # 3. Wavelet Features
+        coeffs = pywt.wavedec(audio, 'db4', level=4)
+        for i, coeff in enumerate(coeffs):
+            features[f'wavelet_coeff_{i}_mean'] = np.mean(coeff)
+            features[f'wavelet_coeff_{i}_std'] = np.std(coeff)
+        
+        # 4. MFCC Features
+        mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=13)
+        for i in range(13):
+            features[f'mfcc_{i}_mean'] = np.mean(mfccs[i])
+            features[f'mfcc_{i}_std'] = np.std(mfccs[i])
+        
+        # 5. Chroma Features
+        chroma = librosa.feature.chroma_stft(y=audio, sr=sample_rate)
+        for i in range(12):
+            features[f'chroma_{i}_mean'] = np.mean(chroma[i])
+        
+        # 6. Mel Spectrogram Features
+        mel_spec = librosa.feature.melspectrogram(y=audio, sr=sample_rate)
+        features['mel_spec_mean'] = np.mean(mel_spec)
+        features['mel_spec_std'] = np.std(mel_spec)
+        
+        # 7. Pitch Features
+        pitches, magnitudes = librosa.piptrack(y=audio, sr=sample_rate)
+        features['pitch_mean'] = np.mean(pitches[magnitudes > np.median(magnitudes)])
+        features['pitch_std'] = np.std(pitches[magnitudes > np.median(magnitudes)])
+        
+        return features
+    except Exception as e:
+        logger.error(f"Error extracting advanced features: {str(e)}")
+        return {}
+
+def analyze_emotion_characteristics(features):
+    """
+    Analyze emotion characteristics based on advanced features.
+    
+    Args:
+        features (dict): Dictionary of advanced features.
+        
+    Returns:
+        dict: Emotion characteristics analysis.
+    """
+    try:
+        analysis = {}
+        
+        # Analyze spectral characteristics
+        if features['spectral_centroid_mean'] > 2000:
+            analysis['energy_level'] = 'high'
+        elif features['spectral_centroid_mean'] < 1000:
+            analysis['energy_level'] = 'low'
+        else:
+            analysis['energy_level'] = 'medium'
+        
+        # Analyze temporal characteristics
+        if features['zero_crossing_rate_mean'] > 0.1:
+            analysis['speech_rate'] = 'fast'
+        elif features['zero_crossing_rate_mean'] < 0.05:
+            analysis['speech_rate'] = 'slow'
+        else:
+            analysis['speech_rate'] = 'normal'
+        
+        # Analyze pitch characteristics
+        if features['pitch_mean'] > 300:
+            analysis['pitch_level'] = 'high'
+        elif features['pitch_mean'] < 150:
+            analysis['pitch_level'] = 'low'
+        else:
+            analysis['pitch_level'] = 'medium'
+        
+        # Analyze spectral contrast
+        if features['spectral_contrast_mean'] > 0.5:
+            analysis['voice_quality'] = 'clear'
+        else:
+            analysis['voice_quality'] = 'muffled'
+        
+        return analysis
+    except Exception as e:
+        logger.error(f"Error analyzing emotion characteristics: {str(e)}")
+        return {}
+
 def predict_emotion_ensemble(models, features):
     """
-    Predict emotion using ensemble of models with confidence thresholds and voting.
-
+    Predict emotion using ensemble of models with advanced analysis.
+    
     Args:
         models (list): List of trained models.
         features (numpy.ndarray): Input features with shape (72,).
-
+        
     Returns:
-        tuple: (predicted_emotion, probabilities, confidence_score)
+        tuple: (predicted_emotion, probabilities, confidence_score, analysis)
     """
     try:
-        # Validate and enhance features
-        features = validate_and_enhance_features(features)
+        # Get base prediction
+        predicted_emotion, probabilities, confidence = super().predict_emotion_ensemble(models, features)
         
-        # Apply feature augmentation
-        augmented_features = augment_features(features)
+        # Extract advanced features
+        advanced_features = extract_advanced_features(features, AUDIO_CONFIG['sample_rate'])
         
-        # Reshape features for model input
-        features = features.reshape(1, 72, 1)
-        augmented_features = augmented_features.reshape(1, 72, 1)
+        # Analyze emotion characteristics
+        analysis = analyze_emotion_characteristics(advanced_features)
         
-        # Get predictions from all models
-        all_probabilities = []
-        all_predictions = []
-        confidence_scores = []
+        # Adjust probabilities based on analysis
+        if analysis['energy_level'] == 'high':
+            probabilities[0][EMOTIONS.index('angry')] *= 1.1
+            probabilities[0][EMOTIONS.index('happy')] *= 1.05
+        elif analysis['energy_level'] == 'low':
+            probabilities[0][EMOTIONS.index('sad')] *= 1.1
+            probabilities[0][EMOTIONS.index('neutral')] *= 1.05
         
-        for model in models:
-            # Get predictions for both original and augmented features
-            prob_orig = model.predict(features, verbose=0)
-            prob_aug = model.predict(augmented_features, verbose=0)
-            
-            # Combine predictions
-            prob = (prob_orig + prob_aug) / 2
-            
-            pred = np.argmax(prob[0])
-            confidence = prob[0][pred]
-            
-            all_probabilities.append(prob[0])
-            all_predictions.append(pred)
-            confidence_scores.append(confidence)
+        if analysis['pitch_level'] == 'high':
+            probabilities[0][EMOTIONS.index('fear')] *= 1.1
+            probabilities[0][EMOTIONS.index('surprise')] *= 1.05
+        elif analysis['pitch_level'] == 'low':
+            probabilities[0][EMOTIONS.index('disgust')] *= 1.1
         
-        # Calculate ensemble probabilities
-        ensemble_probabilities = np.mean(all_probabilities, axis=0)
-        ensemble_probabilities = ensemble_probabilities.reshape(1, -1)
+        # Normalize probabilities
+        probabilities = probabilities / np.sum(probabilities)
         
-        # Apply hidden techniques
-        ensemble_probabilities = apply_hidden_techniques(features, ensemble_probabilities)
-        
-        # Get voting results
-        votes = np.bincount(all_predictions, minlength=len(EMOTIONS))
-        max_votes = np.max(votes)
-        vote_confidence = max_votes / len(models)
-        
-        # Get ensemble prediction
-        ensemble_pred = np.argmax(ensemble_probabilities)
-        ensemble_confidence = ensemble_probabilities[0][ensemble_pred]
-        
-        # Apply temperature scaling to probabilities
-        temperature = 0.5  # Lower temperature makes predictions more confident
-        scaled_probs = np.exp(np.log(ensemble_probabilities[0]) / temperature)
-        scaled_probs = scaled_probs / np.sum(scaled_probs)
-        
-        # Combine voting and ensemble results with weighted confidence
-        if vote_confidence >= 0.6:  # Strong voting consensus
-            predicted_emotion = EMOTIONS[np.argmax(votes)]
-            final_confidence = vote_confidence
-        else:
-            # Weight the ensemble prediction by individual model confidences
-            weighted_probs = np.zeros_like(ensemble_probabilities[0])
-            for i, prob in enumerate(all_probabilities):
-                weighted_probs += prob * confidence_scores[i]
-            weighted_probs /= sum(confidence_scores)
-            
-            # Apply temperature scaling to weighted probabilities
-            weighted_probs = np.exp(np.log(weighted_probs) / temperature)
-            weighted_probs = weighted_probs / np.sum(weighted_probs)
-            
-            predicted_emotion = EMOTIONS[np.argmax(weighted_probs)]
-            final_confidence = np.max(weighted_probs)
-        
-        # Log detailed prediction information
-        logger.debug("Detailed prediction analysis:")
-        logger.debug(f"Feature statistics - Mean: {np.mean(features):.4f}, Std: {np.std(features):.4f}")
-        logger.debug(f"Individual model predictions:")
-        for i, (pred, conf) in enumerate(zip(all_predictions, confidence_scores)):
-            logger.debug(f"Model {i+1}: {EMOTIONS[pred]} (confidence: {conf:.3f})")
-        logger.debug(f"Voting results: {dict(zip(EMOTIONS, votes))}")
-        logger.debug(f"Vote confidence: {vote_confidence:.3f}")
-        logger.debug(f"Ensemble probabilities: {ensemble_probabilities[0]}")
-        logger.debug(f"Ensemble confidence: {ensemble_confidence:.3f}")
-        logger.debug(f"Final prediction: {predicted_emotion} (confidence: {final_confidence:.3f})")
-        
-        return predicted_emotion, ensemble_probabilities, final_confidence
+        return predicted_emotion, probabilities, confidence, analysis
     except Exception as e:
-        logger.error(f"Error predicting emotion: {str(e)}")
-        raise
+        logger.error(f"Error in advanced emotion prediction: {str(e)}")
+        return predicted_emotion, probabilities, confidence, {}
 
 def display_emotion_info():
     """Display information about supported emotions."""
@@ -732,7 +795,7 @@ def process_demo_audio(file_path, models):
         
         # Preprocess and predict
         features = preprocess_audio(audio, sample_rate=sr)
-        predicted_emotion, probabilities, confidence = predict_emotion_ensemble(models, features)
+        predicted_emotion, probabilities, confidence, analysis = predict_emotion_ensemble(models, features)
         
         # Display results
         st.subheader('Prediction Results')
@@ -747,6 +810,15 @@ def process_demo_audio(file_path, models):
                 <p>Ground Truth: {ground_truth.title()}</p>
             </div>
             """, unsafe_allow_html=True)
+            
+            # Display advanced analysis
+            st.markdown("### Voice Characteristics")
+            st.markdown(f"""
+            - Energy Level: {analysis.get('energy_level', 'unknown').title()}
+            - Speech Rate: {analysis.get('speech_rate', 'unknown').title()}
+            - Pitch Level: {analysis.get('pitch_level', 'unknown').title()}
+            - Voice Quality: {analysis.get('voice_quality', 'unknown').title()}
+            """)
         
         with col2:
             st.markdown("### Emotion Probabilities")
@@ -900,7 +972,7 @@ def main():
 
 def process_audio(audio, models, sample_rate=None):
     """
-    Process audio and display results.
+    Process audio and display results with advanced analysis.
     
     Args:
         audio (numpy.ndarray): Audio signal.
@@ -935,8 +1007,8 @@ def process_audio(audio, models, sample_rate=None):
         logger.debug(f"Extracted features shape: {features.shape}")
         logger.debug(f"Feature statistics - Mean: {np.mean(features):.4f}, Std: {np.std(features):.4f}")
         
-        # Predict emotion using enhanced ensemble
-        predicted_emotion, probabilities, confidence = predict_emotion_ensemble(models, features)
+        # Predict emotion using enhanced ensemble with advanced analysis
+        predicted_emotion, probabilities, confidence, analysis = predict_emotion_ensemble(models, features)
         
         # Display results
         st.subheader('Prediction Results')
@@ -954,6 +1026,15 @@ def process_audio(audio, models, sample_rate=None):
                 </p>
             </div>
             """, unsafe_allow_html=True)
+            
+            # Display advanced analysis
+            st.markdown("### Voice Characteristics")
+            st.markdown(f"""
+            - Energy Level: {analysis.get('energy_level', 'unknown').title()}
+            - Speech Rate: {analysis.get('speech_rate', 'unknown').title()}
+            - Pitch Level: {analysis.get('pitch_level', 'unknown').title()}
+            - Voice Quality: {analysis.get('voice_quality', 'unknown').title()}
+            """)
         
         with col2:
             st.markdown("### Emotion Probabilities")

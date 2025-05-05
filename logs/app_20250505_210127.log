@@ -1,0 +1,23 @@
+2025-05-05 21:01:28,044 - app - INFO - Loaded model fold 1
+2025-05-05 21:01:28,511 - app - INFO - Loaded model fold 2
+2025-05-05 21:01:28,980 - app - INFO - Loaded model fold 3
+2025-05-05 21:01:29,460 - app - INFO - Loaded model fold 4
+2025-05-05 21:01:29,901 - app - INFO - Loaded model fold 5
+2025-05-05 21:01:37,624 - app - DEBUG - Extracted features shape: (72,)
+2025-05-05 21:01:37,625 - app - DEBUG - Feature statistics - Mean: 1.6134, Std: 20.9711
+2025-05-05 21:01:37,626 - app - WARNING - Features contain extreme values. Clipping to [-10, 10].
+2025-05-05 21:01:37,627 - app - ERROR - Error augmenting features: fp and xp are not of the same length.
+2025-05-05 21:01:44,480 - app - DEBUG - Detailed prediction analysis:
+2025-05-05 21:01:44,482 - app - DEBUG - Feature statistics - Mean: 0.0000, Std: 1.0000
+2025-05-05 21:01:44,482 - app - DEBUG - Individual model predictions:
+2025-05-05 21:01:44,482 - app - DEBUG - Model 1: neutral (confidence: 0.463)
+2025-05-05 21:01:44,482 - app - DEBUG - Model 2: happy (confidence: 0.442)
+2025-05-05 21:01:44,482 - app - DEBUG - Model 3: happy (confidence: 0.549)
+2025-05-05 21:01:44,483 - app - DEBUG - Model 4: happy (confidence: 0.595)
+2025-05-05 21:01:44,483 - app - DEBUG - Model 5: happy (confidence: 0.415)
+2025-05-05 21:01:44,483 - app - DEBUG - Voting results: {'angry': 0, 'boredom': 0, 'calm': 0, 'disgust': 0, 'fear': 0, 'happy': 4, 'neutral': 1, 'sad': 0, 'surprise': 0}
+2025-05-05 21:01:44,484 - app - DEBUG - Vote confidence: 0.800
+2025-05-05 21:01:44,484 - app - DEBUG - Ensemble probabilities: [0.08123052 0.04182849 0.03972999 0.06240444 0.08570626 0.38059932
+ 0.15103152 0.04766535 0.10980417]
+2025-05-05 21:01:44,485 - app - DEBUG - Ensemble confidence: 0.381
+2025-05-05 21:01:44,485 - app - DEBUG - Final prediction: happy (confidence: 0.800)

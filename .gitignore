@@ -8,13 +8,9 @@ ENV/
 
 
 # Data directories
-data/
+data/EMODB/
+data/RAVDESS/
 *.npy
-*.npz
-*.csv
-*.wav
-*.mp3
-*.ogg
 
 # Python cache
 __pycache__/
@@ -39,6 +35,10 @@ wheels/
 *.egg
 
 # Logs
+logs/
+*.log
+
+
 
 # IDE specific files
 .idea/

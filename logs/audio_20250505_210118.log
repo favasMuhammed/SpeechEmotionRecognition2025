@@ -1,0 +1,6 @@
+2025-05-05 21:01:33,732 - audio_utils - INFO - Recording audio for 3.0 seconds...
+2025-05-05 21:01:37,305 - audio_utils - INFO - Recording completed
+2025-05-05 21:01:37,594 - audio_utils - DEBUG - Processing audio: length=48000, sample_rate=16000
+2025-05-05 21:01:37,594 - audio_utils - DEBUG - Using n_fft=2048, hop_length=512
+2025-05-05 21:01:37,594 - audio_utils - DEBUG - Using n_mels=32
+2025-05-05 21:01:37,623 - audio_utils - DEBUG - Truncating features from 104 to 72
